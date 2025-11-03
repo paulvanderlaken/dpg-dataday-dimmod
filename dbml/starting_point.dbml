@@ -1,0 +1,28 @@
+// JAFFLE SHOP — Original One-Big Table 
+
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table full_table {
+  ORDER_DATETIME        timestamp
+  PRODUCT_NAME          varchar
+  STORE_NAME            varchar
+  CUSTOMER_NAME         varchar
+  ORDER_ID              varchar
+  ORDER_ITEM_ID         varchar
+  CUSTOMER_ID           varchar
+  PRODUCT_SKU           varchar
+  PRODUCT_TYPE          varchar
+  PRODUCT_DESCRIPTION   text
+  SUPPLY_ID             varchar
+  SUPPLY_NAME           varchar
+  SUPPLY_PERISHABLE     boolean
+  STORE_ID              varchar
+  STORE_OPENED_AT       timestamp
+  PRODUCT_PRICE         decimal
+  ORDER_TOTAL           decimal
+  ORDER_SUBTOTAL        decimal
+  SUPPLY_COST           decimal
+  ORDER_TAX_PAID        decimal
+  STORE_TAX_RATE        float
+  LOAD_TS               timestamp
+}

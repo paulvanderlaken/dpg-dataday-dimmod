@@ -1,0 +1,107 @@
+// ---------------------------------------------
+// JAFFLE SHOP — STAR SCHEMA (DBML)
+// Grain:
+//  - FACT_ORDER_ITEMS: 1 row per order_item_id (line item sold)
+//  - FACT_ORDER_ITEM_SUPPLY: 1 row per (order_item_id, supply_id)
+// Notes:
+//  - Keep order-level totals/tax out of line-grain facts to avoid double counting.
+//  - Use surrogate keys in dimensions; keep business keys as natural key columns.
+// ---------------------------------------------
+
+// ============== DIMENSIONS ==============
+
+Table dim_date {
+  date_key        int [pk, note: 'Surrogate YYYYMMDD']
+  date            date [not null]
+  year            int
+  quarter         int
+  month           int
+  day_of_month    int
+  day_of_week     int
+  week_of_year    int
+  is_weekend      boolean
+}
+
+Table dim_customer {
+  customer_key    int [pk, note: 'Surrogate key']
+  customer_id     varchar(64) [unique, not null, note: 'Business key from source (UUID)']
+  customer_name   varchar(255)
+  // Add more attributes as needed (email, segment, etc.)
+}
+
+Table dim_product {
+  product_key         int [pk, note: 'Surrogate key (supports SCD if needed)']
+  product_sku         varchar(64) [unique, not null, note: 'Business key']
+  product_name        varchar(255)
+  product_type        varchar(100)
+  product_description text
+  // Optional attributes; price at sale time belongs in fact
+}
+
+Table dim_store {
+  store_key       int [pk, note: 'Surrogate key']
+  store_id        varchar(64) [unique, not null, note: 'Business key']
+  store_name      varchar(255)
+  store_opened_at timestamp
+  store_tax_rate  decimal(9,6)
+  city            varchar(100) [note: 'Derive from name if available (e.g., Philadelphia, San Francisco)']
+}
+
+Table dim_supply {
+  supply_key        int [pk, note: 'Surrogate key']
+  supply_id         varchar(64) [unique, not null, note: 'Business key']
+  supply_name       varchar(255)
+  supply_perishable boolean
+  // Any other supply attributes (category, vendor, etc.)
+}
+
+// ============== FACTS ==============
+
+Table fact_order_items {
+  // Foreign keys (surrogate)
+  date_key        int [not null, ref: > dim_date.date_key]
+  customer_key    int [not null, ref: > dim_customer.customer_key]
+  product_key     int [not null, ref: > dim_product.product_key]
+  store_key       int [not null, ref: > dim_store.store_key]
+
+  // Degenerate dimensions (from the transaction)
+  order_id        varchar(64) [not null, note: 'Degenerate dimension; order header id (UUID)']
+  order_item_id   varchar(64) [pk, note: 'Line grain; UUID']
+
+  // Transactional attributes at line grain
+  order_datetime  timestamp [not null]
+  product_price   decimal(12,2) [not null, note: 'Unit price at time of sale (line-level)']
+
+  // EXCLUDED from this fact to prevent double counting:
+  //   order_total, order_subtotal, order_tax_paid (they’re order-level)
+}
+
+Table fact_order_item_supply {
+  // Grain: (order_item_id, supply_key)
+  order_item_id   varchar(64) [not null, note: 'Matches fact_order_items.order_item_id']
+  supply_key      int [not null, ref: > dim_supply.supply_key]
+
+  // Optional helper FK for lineage (denormalized join)
+  product_key     int [ref: > dim_product.product_key]
+
+  // Costs attributable per (line, supply)
+  supply_cost     decimal(12,4) [not null]
+
+  // PK across the pair
+  indexes {
+    (order_item_id, supply_key) [pk]
+  }
+}
+
+
+// ============== OPTIONAL: ORDER HEADER DIMENSION (if needed) ==============
+// If you want to analyze order-level totals/tax without double counting,
+// model a small header table and join at report time (or treat as degenerate).
+
+Table dim_order_header {
+  order_id        varchar(64) [pk, note: 'Business key (UUID)']
+  order_subtotal  decimal(12,2)
+  order_tax_paid  decimal(12,2)
+  order_total     decimal(12,2)
+  // If needed: payment method, channel, etc.
+}

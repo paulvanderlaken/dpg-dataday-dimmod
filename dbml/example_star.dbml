@@ -1,0 +1,68 @@
+// JAFFLE SHOP — SIMPLE STAR (business keys only)
+// Grain: one row per (order_item_id, product_sku, supply_id)
+// Uses only columns present in the original table (no surrogate keys, no date dim)
+
+// ============ DIMENSIONS (business keys) ============
+
+Table dim_customer {
+  customer_id     varchar [pk, not null]
+  customer_name   varchar
+}
+
+Table dim_product {
+  product_sku         varchar [pk, not null] // product_id in source is SKU
+  product_name        varchar
+  product_type        varchar
+  product_description text
+}
+
+Table dim_supply {
+  supply_id         varchar [pk, not null]
+  supply_name       varchar
+  supply_perishable boolean
+}
+
+Table dim_store {
+  store_id        varchar [pk, not null]
+  store_name      varchar
+  store_opened_at timestamp
+  store_tax_rate  float
+}
+
+// ============ FACT (line x supply) ============
+
+Table fact_order_item_supply {
+  // Grain columns
+  order_item_id   varchar [not null]
+  product_sku     varchar [not null]
+  supply_id       varchar [not null]
+
+  // Natural FKs to dimensions
+  customer_id     varchar [not null]
+  store_id        varchar [not null]
+
+  // Degenerate/order attrs (from transaction)
+  order_id        varchar [not null]
+  order_datetime  timestamp [not null]
+
+  // Measures at this grain (avoid order-level totals to prevent double count)
+  product_price   decimal(38,0) // unit price at sale time
+  supply_cost     decimal(38,0) // cost attributed for this (item,supply) row
+
+  load_ts         timestamp
+
+  indexes {
+    (order_item_id, product_sku, supply_id) [pk] // composite primary key at stated grain
+    product_sku
+    supply_id
+    customer_id
+    store_id
+  }
+}
+
+// ============ RELATIONSHIPS ============
+
+Ref: fact_order_item_supply.customer_id > dim_customer.customer_id
+Ref: fact_order_item_supply.product_sku > dim_product.product_sku
+Ref: fact_order_item_supply.supply_id   > dim_supply.supply_id
+Ref: fact_order_item_supply.store_id    > dim_store.store_id
