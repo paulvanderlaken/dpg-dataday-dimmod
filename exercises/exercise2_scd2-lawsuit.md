@@ -1,17 +1,52 @@
 # Exercise 2: The Jaffle hits the fan when dimensions come changing
-It’s 2017 and Jaffle Shop is in hot water.
+It's 2017 and Jaffle Shop is in hot water.
 
 > _NEWS HEADLINE_: <br>**Ferrero Roche sues Jaffle Shop!**
 
- Ferrero sued us for selling a Jaffle dubbed the _nutellaphone_. 
+Ferrero is sueing us for selling a Jaffle dubbed the _nutellaphone_. 
  
- After reviewing the case, our Legal department suggests a simple rename to _"chocophone"_ effective 2017-01-01. 
+After reviewing the case, our **Legal** department suggests a simple rename to "__chocophone__" effective 2017-01-01. Fortunately, we do not need to change our recipes, a **minor name change** will suffice for now.
  
- A well-meaning analyst "fixed" the history by overwriting `product_name` in the orders OBT (`CORE.JAFFLE_SHOP.FULL_TABLE_SCD`) from that date onward for the affected SKU.
+A well-meaning analyst went ahead and "__fixed__" the history by overwriting `product_name` in the orders OBT (`CORE.JAFFLE_SHOP.FULL_TABLE_SCD`) from that date onward for the affected SKU.
 
-Meanwhile, PR turns up an older issue: German tourists complained about our Jaffle _"the krautback"_ (`product_sku` = 'JAF-003'). 
+## A second issue arises!
+While you were thinking about how to better incorporate these changes in the data model design, **another issue** came in.
 
-We quietly rebranded it to _"sourbun"_ on the 10th of February 2017-02 . Finance now needs historically correct reporting and legal discovery. You have been tasked to build the dimensional model to succeed where naïve approaches fail. You'll need to construct a proper SCD2 dimension where names are valid as-of dates.
+German tourists **complained** about our Jaffle _"the krautback"_ (`product_sku` = 'JAF-003'). Arguably this name is offensive. 
+
+Our store managers took immediate action and have already **quietly renamed** the product in shops to _"sourbun"_ since the **10th of February 2017**. However, this change was not yet implemented in the *enterprise systems* and thus does not show up in the transactional data. Indeed, we still see _krautback_ in our `CORE.JAFFLE_SHOP.FULL_TABLE_SCD`. Regardless,  we need historically correct reporting as soon as possible though, to estimate the legal and financial implications and risks! 
+
+You have been tasked to build a new and improved dimensional model to succeed where naïve approaches fail. 
+
+## How to start?
+
+You'll build a time-variant `DIM_PRODUCT` with validity windows and then use it to answer finance/legal questions without double counting.
+
+### What you’ll deliver
+1) A **Type-2 product dimension**: one row per (`product_sku`, `product_name`, `valid_from_date`, `valid_to_date_excl`), plus `is_current` and a surrogate key (can be sequence-based). You can derive the "chocophone" transition from the observations in `CORE.JAFFLE_SHOP.FULL_TABLE_SCD`, but you'll have to implement the "_sourbun_" transition yourself.
+3) A **report** of total revenue per SKU × historical name (as-of order date).
+4) _Optional_: create a fact table on the right level for continued report
+5) _Optional_: create dimension tables for all other entities 
+6) _Optional_: add `product_type` to your `DIM_PRODUCT` dimension table.
+3) _Optional_: **\[BONUS\]** use a idempotent (i.e. re-runnable) rule ledger table to declare official cutovers
+7) _Optional_: **\[BONUS\]** create a Type-2 dimension table and/or bridge so you can replace "_nutella_" with "_regular chocolate paste_" as a supply ingredient to the _chocophone_. 
+
+
+### Best approach: Try it yourself!
+
+Start in Snowflake and explore `CORE.JAFFLE_SHOP.FULL_TABLE_SCD`. Keep these truths in mind:
+* The OBT is at order_item/product_sku × supply_id grain. For revenue, remember to **dedupe** to line grain first.
+* Type-0/1 dims break legal/finance use-cases; you need **Type-2** with exclusive end dates.
+* Make everything **re-runnable** (idempotent): sequences for keys, and scripts safe to run twice.
+
+When you get stuck, ask a neighbor or an assistant. Then jump back in.
+
+### Alternative approach: Follow the guided steps below
+
+If you need a nudge, work through these in order. Try not to peek at the solutions too quickly though!
+
+<details>
+<summary>Guided steps</summary>
 
 ## 0) Failing with a type 0 dimension table.
 
@@ -184,7 +219,7 @@ FROM _first_seen;
 ```sql
 CREATE OR REPLACE TABLE [YOUR_NAME].JAFFLE_SHOP_SCD2.DIM_PRODUCT AS
 SELECT
-  [YOUR_NAME].JAFFLE_SHOP_SCD2.SEQ_DIM_PRODUCT.NEXTVAL AS product_key,  -- surrogate key
+  [YOUR_NAME].JAFFLE_SHOP_SCD2.SEQ_DIM_PRODUCT.NEXTVAL AS product_key,
   product_sku,
   product_name,
   valid_from_date,
@@ -467,3 +502,5 @@ ORDER BY 1,2;
 **Bonus**: You might notice that you are now reporting on all products, including beverages. The simple way would be to **subset** this report for records that match a certain **string pattern**. Can you make it do just that?
 
 A real engineer would **revisit** all earlier assignments and ensure that `product_type` is included in the dimension table going forward. Are you up for the task?
+
+</details>
