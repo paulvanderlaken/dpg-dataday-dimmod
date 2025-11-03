@@ -11,8 +11,7 @@ You know that you'll first have to **redesign the data model**. This will make i
 
 ## How to start?
 As part of this exercise, you'll need to perform the **following steps**:
-1) Design the new data model in .dbml format using [DB diagram](https://dbdiagram.io/d). 
-  1) Copy over the [starting_point.dbml] for a quick start. 
+1) Design the new data model in .dbml format using [DB diagram](https://dbdiagram.io/d). Copy over the [starting_point.dbml]() for a quick start. 
 2) Seperate the dimension tables from `CORE.JAFFLE_SHOP.FULL_TABLE` 
 3) Seperate the fact table(s) from `CORE.JAFFLE_SHOP.FULL_TABLE` 
 
