@@ -241,7 +241,7 @@ ALTER TABLE [YOUR_NAME].JAFFLE_SHOP.FACT_SUPPLY_ORDER_ITEMS
 </details>
 
 ## 4) Putting hte model to work
-Your **STAR** is live: a clean fact at grain (order_item_id, supply_id) and tidy dimensions with stable price/cost. 
+Your **STAR** is live: a clean fact at grain (order_item_id, product_sku, supply_id) and tidy dimensions with stable price/cost. 
 
 Now we'll use our new data model to answer a common business question using safe aggregations that avoid double counting revenue while correctly summing supply costs.
 
@@ -314,3 +314,19 @@ ORDER BY store_name, total_profit DESC;
 > Note: Please change `[YOUR_NAME]` to the appropriate database name, and ensure you've added the schema as per [0)]()
 
 </details>
+
+
+
+## 5) Next steps 
+You might have noticed that it was still less than straightfoward to use your new **STAR** to do basic analytics. 
+
+The current grain (order_item_id, product_sku, supply_id) seems just misaligned with the main type of questions one might ask. 
+
+Can you consider how to enhance this current Star schema to improve the user experience?
+
+* How would you redesign the schema? Start by trying to improve your original design in [dbdiagram.io](dbdiagram.io)?
+    * Would another fact table help?
+    * Do you need to snowflake out?
+    * Or would building a ["bridge" table](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multivalued-dimension-bridge-table/) be a better solution?
+* Can you implement this new redesign in code?
+* Can you put views on top to simplify the most basic calculations, or even pre-calculate revelant aggregations?
