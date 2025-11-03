@@ -12,27 +12,35 @@ You know that you'll first have to **redesign the data model**. This will make i
 ## How to start?
 As part of this exercise, you'll need to perform the **following steps**:
 1) Design the new data model in .dbml format using [DB diagram](https://dbdiagram.io/d). 
-  * Copy over the [starting_point.dbml] for a quick start. 
+  1) Copy over the [starting_point.dbml] for a quick start. 
 2) Seperate the dimension tables from `CORE.JAFFLE_SHOP.FULL_TABLE` 
 3) Seperate the fact table(s) from `CORE.JAFFLE_SHOP.FULL_TABLE` 
-* Optional: use a bridge or a second fact table to achieve a higher-level grain for your main fact table.
-* Optional: add views on top for easy analysis and common aggregates
 
+4) Optional: use a bridge or a second fact table to achieve a higher-level grain for your main fact table.
+4) Optional: add views on top for easy analysis and common aggregates
+
+<br><br>
 There are **two ways** to complete this assignment. 
 
 ### Best appraoch: Try it yourself!
 First, you should **attempt** to complete the steps above **yourself**. 
 
-You'll learn most, even if you struggle a bit.
+You'll learn most by exploring, even if you struggle a bit.
 
-You can always ask a neighboring colleague or one of the assistants for help.
+Open up **Snowflake** and start querying `CORE.JAFFLE_SHOP.FULL_TABLE`. 
+
+With every **query** or analysis you run, think about the **underlying data model**. Save your intermediate findings in .dbml format in [DB diagram](https://dbdiagram.io/d) and build out your new Star schema.
+
+When you have a first dimension table clear, just build a small DDL script to **create a table in your own database**, like `[YOUR_NAME].JAFFLE_SHOP.DIM_CUSTOMER`. You can always overwrite it, so why not **just try**!
+
+When you get stuck, know that you can always ask a neighboring colleague or one of the assistants for help.
 
 ### Alternative approach: Follow the guided steps below.
-If you get stuck or know you'll need some extra assistance, you can opt to follow the steps below.
-
-However, try not to peek at the answers too quickly. 
+If you get stuck or know you'll need some extra assistance, you can opt to follow the steps below. However, try not to peek at the answers too quickly. 
 
 At the end, you will still be challenged to extend the model without supervision. 
+
+Either way... good luck!
 
 ## 0) Create a schema.
 We will be creating our own Star schema tables, and we'll need some place to store them.
