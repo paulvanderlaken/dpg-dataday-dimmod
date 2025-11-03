@@ -1,0 +1,77 @@
+// JAFFLE SHOP — Star + Bridge (simple, business keys only)
+// Grain: FACT_ORDER_ITEMS = 1 row per (order_item_id, product_sku)
+// Supplies are linked via a bridge: BRIDGE_PRODUCT_SUPPLY (product_sku ↔ supply_id)
+// Uses only columns that exist in the original extract (no surrogate keys, no SCD fields)
+
+// ============== DIMENSIONS (business keys) ==============
+
+Table dim_customer {
+  customer_id     varchar [pk, not null]
+  customer_name   varchar
+}
+
+Table dim_product {
+  product_sku         varchar [pk, not null]
+  product_name        varchar
+  product_type        varchar
+  product_description text
+}
+
+Table dim_store {
+  store_id        varchar [pk, not null]
+  store_name      varchar
+  store_opened_at timestamp
+  store_tax_rate  float
+}
+
+Table dim_supply {
+  supply_id         varchar [pk, not null]
+  supply_name       varchar
+  supply_perishable boolean
+  supply_cost       decimal(38, 0)
+ }
+
+// ============== FACT (line-level sales) ==============
+
+Table fact_order_items {
+  // Grain columns
+  order_item_id   varchar [pk, not null]
+  product_sku     varchar [not null, ref: > dim_product.product_sku]
+
+  // Natural FKs to dimensions
+  customer_id     varchar [not null, ref: > dim_customer.customer_id]
+  store_id        varchar [not null, ref: > dim_store.store_id]
+
+  // Degenerate/order attrs (from transaction)
+  order_id        varchar [not null]
+  order_datetime  timestamp [not null]
+
+  // Measures at this grain
+  product_price   decimal(38,0)  // unit price at time of sale
+
+  // Optional load audit
+  load_ts         timestamp
+
+  indexes {
+    product_sku
+    customer_id
+    store_id
+    order_datetime
+  }
+}
+
+// ============== BRIDGE (product ↔ supplies) ==============
+
+Table bridge_product_supply {
+  // Many-to-many map from products to their component supplies (BOM)
+  product_sku   varchar [not null, ref: > dim_product.product_sku]
+  supply_id     varchar [not null, ref: > dim_supply.supply_id]
+
+  // If later available, you can add qty_per_unit, effective_date ranges, etc.
+
+  indexes {
+    (product_sku, supply_id) [pk] // composite primary key
+    product_sku
+    supply_id
+  }
+}
