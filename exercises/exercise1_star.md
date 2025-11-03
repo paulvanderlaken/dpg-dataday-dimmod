@@ -21,7 +21,7 @@ As part of this exercise, you'll need to perform the **following steps**:
 <br><br>
 There are **two ways** to complete this assignment. 
 
-### Best appraoch: Try it yourself!
+### Best approach: Try it yourself!
 First, you should **attempt** to complete the steps above **yourself**. 
 
 You'll learn most by exploring, even if you struggle a bit.
@@ -40,6 +40,9 @@ If you get stuck or know you'll need some extra assistance, you can opt to follo
 At the end, you will still be challenged to extend the model without supervision. 
 
 Either way... good luck!
+
+<details>
+<summary>Guided steps</summary>
 
 ## 0) Create a schema.
 We will be creating our own Star schema tables, and we'll need some place to store them.
@@ -377,5 +380,7 @@ Can you consider how to enhance this current Star schema to improve the user exp
 
 Have a look at the [example_star_bridge.dbml] or the [example_galaxy.dbml] for possible solutions.
 Copy these over into [dbdiagram.io](dbdiagram.io) to see what they look like.
+
+</details>
 
 </details>
