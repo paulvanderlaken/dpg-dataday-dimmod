@@ -3,13 +3,43 @@
 > _NEWS HEADLINE:_<br>
 > **ALL STRAWS BANNED AS OF Q2 2017!**
 
-Our Jaffle Shop serves not only delicious jaffles, but also satisfying cold drinks. 
+Our Jaffle Shop serves not only delicious jaffles, but also **hot & cold drinks**. A new regulation removes **straws** from all beverage recipes, and **prices** on beverages are adjusted slightly. 
 
-Unfortunately, new legislation is forcing us to change our recipies as of Q2 2017. While the change is relatively small, it has some implications on our data management front. 
+Your transactional feed has captured these shifts: the table `CORE.JAFFLE_SHOP.FULL_TABLE_SCD_BRIDGE` now shows no straw supply rows after the policy date, and beverage prices reflect the change.
 
-In the transactional data (`CORE.JAFFLE_SHOP.FULL_TABLE_SCD_BRIDGE`) you will observe that our "bill of materials" (BOM) has changed for our bevereages. There are no more records with supply items for straws.
+To report margins correctly (and let analysts drill into components), you'll model changing **Bills of Materials** (BOMs) over time. That means creating a **versioned BOM dimension** and a **bridge** that maps each version to its component supplies.
 
-You might have also noticed the slight price reduction to all our beverage items. While margins will slightly improve because of these changes, our analytics will only reflect this if we change our data models to work with changing BOMs.
+## How to start?
+
+You'll design two tables that can slot into the wider star later:
+1) `DIM_PRODUCT_BOM_VERSION`: one row per **product** × **BOM signature** × **validity window** with `is_current`. You can think of the BOM signature as being a comma-seperated string of concatenated supply_ids. This would be relatively easy to "explode" into a BOM later on. But feel free to design something else! The validity window should contain at least two dates (valid_from, *_to) to allow for joining to facts.  
+2) `BR_BOM_VERSION_SUPPLY`: component rows per version (`bom_version_key` → `supply_id`, with optional `component_qty` [i.e. 1 in our case]).
+
+You can derive versions purely from observed transactions and then use them to stamp facts with the correct as-of BOM.
+
+If you finish early, take some time to consider whether this is a good data model.
+* Is it extendible easily? How would you version product names/types seperately?
+* How would you maintain changing BOMs? As a **bonus challenge**: Would you be able to replace the __nutella__ in the __nutellaphone__ product to __regular chocolate__ as of Jan 1st 2017?
+
+### Best approach: Try it yourself!
+
+Open Snowflake and explore `CORE.JAFFLE_SHOP.FULL_TABLE_SCD_BRIDGE`.
+
+Keep these truths in mind:
+* The source grain is **order_item/product_sku** × **supply_id** at sell time.
+* **Revenue** should be taken at **line grain** (deduplicate order_item), while **cost** rolls up from **bridge components**.
+* BOM versions can be detected by comparing the **set of supplies per product per day**.
+
+Work iteratively: sketch the model in [DB diagram](dbdiagram.io), stage intermediate results with CTEs, and only then persist to your schema. If you get stuck, ask a neighbor, then jump back in.
+
+### Alternative approach: Follow the guided steps below
+
+This is a complex assignment. You will get stuck.
+
+If you want to just walk through a potential solution step-by-step, you can follow the guidelines below.
+
+<details>
+<summary>Guided steps</summary>
 
 ## Your mission
 
@@ -530,5 +560,7 @@ FROM line_agg
 GROUP BY 1
 ORDER BY period;
 ```
+
+</details>
 
 </details>
