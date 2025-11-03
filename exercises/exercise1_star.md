@@ -1,5 +1,38 @@
 # Exercise 1: From One Big Table to a Star for “Jaffle Shop”
 
+In your **new job**, you are responsible for all **reporting and analytics** for Jaffle Shop. 
+
+Your **predecessor** was not very good at his job. 
+He leveraged **one big table** (`CORE.JAFFLE_SHOP.FULL_TABLE`) for every analysis and report that he was asked to do.
+
+You want to introduce some **self-service analytics** for your users, and are thinking about exposing the data using the company's **BI** software. 
+
+You know that you'll first have to **redesign the data model**. This will make it a lot easier to develop a BI front-end that is maintainable, scalable, correct, and user-friendly.
+
+## How to start?
+As part of this exercise, you'll need to perform the **following steps**:
+1) Design the new data model in .dbml format using [DB diagram](https://dbdiagram.io/d). 
+  * Copy over the [starting_point.dbml] for a quick start. 
+2) Seperate the dimension tables from `CORE.JAFFLE_SHOP.FULL_TABLE` 
+3) Seperate the fact table(s) from `CORE.JAFFLE_SHOP.FULL_TABLE` 
+* Optional: use a bridge or a second fact table to achieve a higher-level grain for your main fact table.
+* Optional: add views on top for easy analysis and common aggregates
+
+There are **two ways** to complete this assignment. 
+
+### Best appraoch: Try it yourself!
+First, you should **attempt** to complete the steps above **yourself**. 
+
+You'll learn most, even if you struggle a bit.
+
+You can always ask a neighboring colleague or one of the assistants for help.
+
+### Alternative approach: Follow the guided steps below.
+If you get stuck or know you'll need some extra assistance, you can opt to follow the steps below.
+
+However, try not to peek at the answers too quickly. 
+
+At the end, you will still be challenged to extend the model without supervision. 
 
 ## 0) Create a schema.
 We will be creating our own Star schema tables, and we'll need some place to store them.
@@ -330,3 +363,12 @@ Can you consider how to enhance this current Star schema to improve the user exp
     * Or would building a ["bridge" table](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/multivalued-dimension-bridge-table/) be a better solution?
 * Can you implement this new redesign in code?
 * Can you put views on top to simplify the most basic calculations, or even pre-calculate revelant aggregations?
+
+
+<details>
+  <summary>Possible Solution</summary>
+
+Have a look at the [example_star_bridge.dbml] or the [example_galaxy.dbml] for possible solutions.
+Copy these over into [dbdiagram.io](dbdiagram.io) to see what they look like.
+
+</details>
