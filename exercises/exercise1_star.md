@@ -13,10 +13,10 @@ You know that you'll first have to **redesign the data model**. This will make i
 As part of this exercise, you'll need to perform the **following steps**:
 1) Design the new data model in .dbml format using [DB diagram](https://dbdiagram.io/d). Copy over the [starting_point.dbml]() for a quick start. 
 2) Seperate the dimension tables from `CORE.JAFFLE_SHOP.FULL_TABLE` 
-3) Seperate the fact table(s) from `CORE.JAFFLE_SHOP.FULL_TABLE` 
+3) Seperate the fact table(s) from `CORE.JAFFLE_SHOP.FULL_TABLE`. It's easiest to first focus on reproducing the current grain.
 
-4) Optional: use a bridge or a second fact table to achieve a higher-level grain for your main fact table.
-4) Optional: add views on top for easy analysis and common aggregates
+4) __Optional__: use a bridge or a second fact table to achieve a higher-level grain for your main fact table.
+4) __Optional__: add views on top for easy analysis and common aggregates
 
 <br><br>
 There are **two ways** to complete this assignment. 
