@@ -54,6 +54,17 @@ GROUP BY id_count
 ORDER BY id_count;
 ```
 
+### Building a database diagram.
+This would be a great point to start building out your conceptual knowledge of the dataset and turning it into a conceptual diagram.
+
+[DB diagram](https://dbdiagram.io/d) is a great tool for doing just that. 
+
+You can use the [starting_point.dbml](dbml\starting_point.dbml) and copy its contents straight over into the [DB diagram](https://dbdiagram.io/d) web interface. The starting_point.dbml code represents the current FULL_TABLE -- a great starting point to start seperating out your entities/dimensions. 
+
+You can work on .dbml files in any text editor, and if you remember to save them as .dbml, tools like VSCode even offer nice plugins for visualization.
+
+
+
 ## 2) Identifying the entities (Shaping Level-0 Dimensions)
 With the grain clarified as (order_item_id, supply_id), you’re now ready to get modeling. 
 
