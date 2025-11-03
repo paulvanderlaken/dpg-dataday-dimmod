@@ -1,4 +1,9 @@
-CREATE OR REPLACE TABLE RAW.JAFFLE_SHOP.FULL_TABLE (
+-- 1) Ensure target schema exists
+CREATE SCHEMA IF NOT EXISTS CORE.JAFFLE_SHOP;
+
+
+-- 2) Build the base FULL_TABLE
+CREATE OR REPLACE TABLE CORE.JAFFLE_SHOP.FULL_TABLE (
     order_datetime        TIMESTAMP_NTZ
     , product_name          STRING
     , store_name            STRING
@@ -31,9 +36,8 @@ CREATE OR REPLACE TABLE RAW.JAFFLE_SHOP.FULL_TABLE (
 );
 
 
-
--- 2) Insert joined data
-INSERT INTO RAW.JAFFLE_SHOP.FULL_TABLE (
+-- 3) Insert joined data
+INSERT INTO CORE.JAFFLE_SHOP.FULL_TABLE (
       customer_id
     , customer_name
     , order_id
@@ -85,12 +89,92 @@ SELECT
     , st.tax_rate                                 AS store_tax_rate
 
     , CURRENT_TIMESTAMP()                         AS load_ts
-FROM ORDERS            AS o
-LEFT JOIN CUSTOMERS    AS c  ON c.id = o.customer
-LEFT JOIN ITEMS        AS oi ON oi.order_id = o.id
-LEFT JOIN PRODUCTS     AS p  ON p.sku = oi.sku
-LEFT JOIN SUPPLIES     AS s  ON s.sku = oi.sku
-LEFT JOIN STORES       AS st ON st.id = o.store_id
+FROM RAW.JAFFLE_SHOP_RAW.ORDERS            AS o
+LEFT JOIN RAW.JAFFLE_SHOP_RAW.CUSTOMERS    AS c  ON c.id = o.customer
+LEFT JOIN RAW.JAFFLE_SHOP_RAW.ITEMS        AS oi ON oi.order_id = o.id
+LEFT JOIN RAW.JAFFLE_SHOP_RAW.PRODUCTS     AS p  ON p.sku = oi.sku
+LEFT JOIN RAW.JAFFLE_SHOP_RAW.SUPPLIES     AS s  ON s.sku = oi.sku
+LEFT JOIN RAW.JAFFLE_SHOP_RAW.STORES       AS st ON st.id = o.store_id
 WHERE oi.id IS NOT NULL -- There appear to be some orders without ordered items.
-ORDER BY o.ordered_at
-;
+ORDER BY o.ordered_at;
+
+
+-- 4) Create SCD-style table with targeted rename for JAF-001 on/after 2017-01-01
+CREATE OR REPLACE TABLE CORE.JAFFLE_SHOP.FULL_TABLE_SCD
+COPY GRANTS
+AS
+SELECT
+    order_datetime,
+    CASE
+        WHEN product_sku = 'JAF-001'
+         AND order_datetime >= TO_TIMESTAMP_NTZ('2017-01-01 00:00:00')
+        THEN 'chocophone'
+        ELSE product_name
+    END                                  AS product_name,
+    store_name,
+    customer_name,
+
+    order_id,
+    order_item_id,
+    customer_id,
+
+    product_sku,
+    product_type,
+    product_description,
+
+    supply_id,
+    supply_name,
+    supply_perishable,
+
+    store_id,
+    store_opened_at,
+
+    product_price,
+    order_total,
+    order_subtotal,
+    supply_cost,
+    order_tax_paid,
+    store_tax_rate,
+
+    load_ts
+FROM CORE.JAFFLE_SHOP.FULL_TABLE;
+
+
+-- 5) Create BRIDGE table: FILTER OUT SUP-007 on/after 2017-04-01,
+--    then reduce price by 10 for all remaining rows
+CREATE OR REPLACE TABLE CORE.JAFFLE_SHOP.FULL_TABLE_SCD_BRIDGE
+COPY GRANTS
+AS
+SELECT
+    order_datetime,
+    product_name,
+    store_name,
+    customer_name,
+    order_id,
+    order_item_id,
+    customer_id,
+    product_sku,
+    product_type,
+    product_description,
+    supply_id,
+    supply_name,
+    supply_perishable,
+    store_id,
+    store_opened_at,
+    CASE
+        WHEN product_type = 'beverage'
+         AND order_datetime >= TO_TIMESTAMP_NTZ('2017-04-01 00:00:00')
+        THEN product_price - 10
+        ELSE product_price
+    END AS product_price,
+    order_total,
+    order_subtotal,
+    supply_cost,
+    order_tax_paid,
+    store_tax_rate,
+    load_ts
+FROM CORE.JAFFLE_SHOP.FULL_TABLE_SCD
+WHERE NOT (
+    supply_id = 'SUP-007'
+    AND order_datetime >= TO_TIMESTAMP_NTZ('2017-04-01 00:00:00')
+);
